@@ -30,6 +30,7 @@ usage() {
   echo "  -u, --user string         The username to collect repositories in"
   echo "  -o, --org string          The organization to collect repositories in"
   echo "  -t, --team string         The team within the organization (optional)"
+  echo "  -r, --repos string        Filter repositories by regex"
   echo "  -b, --new-branch string   The new name for the master branch (defaults to"
   echo "                              'main')"
   echo "  -d, --delete              Delete the master branch from GitHub"
@@ -48,6 +49,7 @@ fi
 ORG=
 TEAM=
 USER=
+REPO_REGEX='.*'
 NEW_BRANCH=main
 DELETE=0
 DRY_RUN=0
@@ -64,6 +66,9 @@ while [ $# -gt 0 ] ; do
       ;;
     -t | --team)
       TEAM="$2"
+      ;;
+    -r | --repos)
+      REPO_REGEX="$2"
       ;;
     -b | --new-branch)
       NEW_BRANCH="$2"
@@ -146,6 +151,7 @@ while [ -n "$PARAMS" ]; do
     jq "
       map(
         select(
+          (.name | test(\"$REPO_REGEX\")) and
           .fork == false and
           .archived == false and
           .disabled == false and
